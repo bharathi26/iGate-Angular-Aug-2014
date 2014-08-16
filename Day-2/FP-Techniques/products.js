@@ -62,6 +62,52 @@ console.table(products);
 
 //Write a filter function that can be used to filter any list by any criteria
 
-var filter = function(list,/*....*/){
-	
+var filter = function(list, criteriaFn){
+	var result = [];
+	for(var i=0;i<list.length;i++)
+		if (criteriaFn(list[i]) === true)
+			result.push(list[i]);
+	return result;
 }
+console.log("All costly products [cost > 50]")
+var costlyProductCriteria = function(product){
+	return product.cost > 50;
+}
+var costlyProducts = filter(products,costlyProductCriteria);
+console.table(costlyProducts);
+
+console.log("All category-1 products");
+var category1Criteria = function(product){
+	return product.category === 1;
+}
+
+var allCategory1Products = filter(products,category1Criteria);
+console.table(allCategory1Products);
+
+//min
+//max
+//sum
+//avg
+//any
+//all
+//countBy
+
+//groupBy
+function groupBy(list,keySelectorFn){
+	var result = {};
+	for(var i=0;i<list.length;i++){
+		var key = keySelectorFn(list[i]);
+		result[key] = result[key] || [];
+		result[key].push(list[i]);
+	}
+	return result;
+}
+
+var productsGroupedByCategory = groupBy(products, function(p){return p.category;});
+
+var productClassificationByCost = function(product){
+	return product.cost > 50 ? "costly" : "affordable";
+}
+
+var productsGroupedByCost = groupBy(products,productClassificationByCost);
+

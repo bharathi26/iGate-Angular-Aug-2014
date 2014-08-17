@@ -34,31 +34,81 @@
 	}
 	</style>
 	<script>
-	function taskController($scope){
-		var tasks = $scope.tasks = [];
-		$scope.addTask = function(){
+	angular.module('taskModule',[]);
+	angular.module('taskModule').factory('taskStorage',function getTaskStorage($window){
+		function addTaskToStorage(taskName){
 			var newTask = {
-				name : $scope.newTask,
+				id : new Date().getTime().toString(),
+				name : taskName,
 				isCompleted : false
 			}
-			tasks.push(newTask);
+			$window.localStorage.setItem(newTask.id, $window.JSON.stringify(newTask));
+			return newTask;
+		}
+		function removeTaskFromStorage(id){
+			$window.localStorage.removeItem(id);
+		}
+		function getAllTasksFromStorage(){
+			var allTasks = [];
+			for(var i=0;i<$window.localStorage.length;i++){
+				var key = $window.localStorage.key(i);
+				allTasks.push($window.JSON.parse($window.localStorage.getItem(key)));
+			}
+			return allTasks;
+		}
+		return {
+			add : addTaskToStorage,
+			remove : removeTaskFromStorage,
+			getAll : getAllTasksFromStorage 
+		};
+	});
+	angular.module('taskModule').controller('taskController', function taskController($scope,taskStorage){
+		//var taskStorage = getTaskStorage();
+		var tasks = $scope.tasks = taskStorage.getAll();
+		$scope.addTask = function(){
+			var newTaskObj = taskStorage.add($scope.newTask);
+			tasks.push(newTaskObj);
 		}
 		$scope.toggleCompletion = function(task){
 			task.isCompleted = !task.isCompleted;
+		};
+		$scope.removeCompelted = function(){
+			for(var i=tasks.length-1;i>=0;i--)
+				if (tasks[i].isCompleted){
+					taskStorage.remove(tasks[i].id);
+					tasks.splice(i,1);
+				}
 		}
-	}
+	});
+	angular.module('taskModule').filter('limitName', function(){
+		return function(data,limit){
+			data = data || '';
+			limit = limit || 20;
+			return data.length > limit ? data.substr(0,limit) + "..." : data;
+		}
+	})
 	</script>
 </head>
-<body ng-app>
+<body ng-app="taskModule">
 	<h1>Task Manager</h1>
 	<div class="content" data-ng-controller="taskController">
+		<div>
+			<input type="range" ng-model="taskNameLength" min="0" max="50">
+			<input type="text" ng-model="taskSearch.name">
+		</div>
 		<span>Task :</span>
 		<input type="text" data-ng-model="newTask">
 		<input type="button" value="Add Task" data-ng-click="addTask()">
+		<input type="button" value="Remove Completed" data-ng-click="removeCompelted()">
 		<ol>
-			<li data-ng-repeat="task in tasks track by $index"
-			data-ng-click="toggleCompletion(task)"
-			 data-ng-class="{completed : task.isCompleted}">{{task}}</li>
+			<li data-ng-repeat="task in tasks | filter:taskSearch"
+			 data-ng-class="{completed : task.isCompleted}">
+			 	<input type="checkbox" 
+			 		data-ng-click="toggleCompletion(task)">
+
+			 	<span data-ng-show="editableTask != task" ng-click="editableTask=task">{{task.name | limitName:taskNameLength  }}</span>
+			 	<input ng-blur="editableTask=null" data-ng-show="editableTask === task" type="text" data-ng-model="task.name" >
+			 </li>
 		</ol>
 	</div>
 </body>

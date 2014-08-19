@@ -34,59 +34,59 @@
 	}
 	</style>
 	<script>
-	angular.module('taskModule',[]);
-	angular.module('taskModule').factory('taskStorage',function getTaskStorage($window){
-		function addTaskToStorage(taskName){
-			var newTask = {
-				id : new Date().getTime().toString(),
-				name : taskName,
-				isCompleted : false
+	angular.module('taskModule',[])
+	.factory('taskStorage',['$window',function getTaskStorage($w){
+			function addTaskToStorage(taskName){
+				var newTask = {
+					id : new Date().getTime().toString(),
+					name : taskName,
+					isCompleted : false
+				}
+				$w.localStorage.setItem(newTask.id, $w.JSON.stringify(newTask));
+				return newTask;
 			}
-			$window.localStorage.setItem(newTask.id, $window.JSON.stringify(newTask));
-			return newTask;
-		}
-		function removeTaskFromStorage(id){
-			$window.localStorage.removeItem(id);
-		}
-		function getAllTasksFromStorage(){
-			var allTasks = [];
-			for(var i=0;i<$window.localStorage.length;i++){
-				var key = $window.localStorage.key(i);
-				allTasks.push($window.JSON.parse($window.localStorage.getItem(key)));
+			function removeTaskFromStorage(id){
+				$w.localStorage.removeItem(id);
 			}
-			return allTasks;
-		}
-		return {
-			add : addTaskToStorage,
-			remove : removeTaskFromStorage,
-			getAll : getAllTasksFromStorage 
-		};
-	});
-	angular.module('taskModule').controller('taskController', function taskController($scope,taskStorage){
-		//var taskStorage = getTaskStorage();
-		var tasks = $scope.tasks = taskStorage.getAll();
-		$scope.addTask = function(){
-			var newTaskObj = taskStorage.add($scope.newTask);
+			function getAllTasksFromStorage(){
+				var allTasks = [];
+				for(var i=0;i<$w.localStorage.length;i++){
+					var key = $w.localStorage.key(i);
+					allTasks.push($w.JSON.parse($w.localStorage.getItem(key)));
+				}
+				return allTasks;
+			}
+			return {
+				add : addTaskToStorage,
+				remove : removeTaskFromStorage,
+				getAll : getAllTasksFromStorage 
+			};
+		}])
+	.controller('taskController',['$scope','taskStorage' function taskController($sc,ts){
+		//var ts = getTaskStorage();
+		var tasks = $sc.tasks = ts.getAll();
+		$sc.addTask = function(){
+			var newTaskObj = ts.add($sc.newTask);
 			tasks.push(newTaskObj);
 		}
-		$scope.toggleCompletion = function(task){
+		$sc.toggleCompletion = function(task){
 			task.isCompleted = !task.isCompleted;
 		};
-		$scope.removeCompelted = function(){
+		$sc.removeCompelted = function(){
 			for(var i=tasks.length-1;i>=0;i--)
 				if (tasks[i].isCompleted){
-					taskStorage.remove(tasks[i].id);
+					ts.remove(tasks[i].id);
 					tasks.splice(i,1);
 				}
 		}
-	});
-	angular.module('taskModule').filter('limitName', function(){
+	}])
+	.filter('limitName', function(){
 		return function(data,limit){
 			data = data || '';
 			limit = limit || 20;
 			return data.length > limit ? data.substr(0,limit) + "..." : data;
 		}
-	})
+	});
 	</script>
 </head>
 <body ng-app="taskModule">

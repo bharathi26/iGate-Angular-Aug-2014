@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Routing Demo</title>
+	<script src="angular.js"></script>
+	<script src="angular-route.js"></script>
+	<script>
+	angular.module("routingDemo",['ngRoute'])
+	.config(function($routeProvider){
+		$routeProvider
+			.when('/products/:productId',{
+				templateUrl : 'products.tpl.html',
+				controller : 'productsController'
+			})
+			.when('/customers/:customerId',{
+				templateUrl : 'customers.tpl.html',
+				controller : 'customersController'
+			})
+			.otherwise({
+				redirectTo : '/products/10'
+			});
+	})
+	.controller('productsController', function($scope, $routeParams){
+		console.log($routeParams);
+		$scope.message = "Products Controller is loaded for product id = " + $routeParams.productId;
+	})
+	.controller('customersController', function($scope, $routeParams){
+		console.log($routeParams);
+		$scope.message = "Customers controller is loaded for customer id = " + $routeParams.customerId;
+	});
+	</script>
+</head>
+<body ng-app = "routingDemo">
+	<ng-view></ng-view>
+</body>
+</html>
